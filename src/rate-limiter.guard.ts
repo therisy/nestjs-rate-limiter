@@ -16,15 +16,18 @@ export class RateLimiterGuard implements CanActivate {
     async canActivate(context: ExecutionContext): Promise<boolean> {
         let reflectedOptions: RateLimiterOptions = this.reflector.get<RateLimiterOptions>('rate-limit-options', context.getHandler())
 
-        if (!reflectedOptions) {
-            reflectedOptions = this.options;
+        if (reflectedOptions) {
+            if (reflectedOptions.points) this.options.points = reflectedOptions.points;
+            if (reflectedOptions.duration) this.options.duration = reflectedOptions.duration;
+            if (reflectedOptions.keyPrefix) this.options.keyPrefix = reflectedOptions.keyPrefix;
+            if (reflectedOptions.errorMessage) this.options.errorMessage = reflectedOptions.errorMessage;
         }
 
         const {request, response} = this.httpContext(context);
-        const ip = this.requestIp(request);
+        const ip = request.ip || request.headers['x-forwarded-for'] || request.connection.remoteAddress;
 
         await this.responseRateLimit(request, response, reflectedOptions, ip)
-        return true
+        return true;
     }
 
     private setResponseHeaders(response: any, rateLimiterResponse: IRateLimiterResponse) {
@@ -32,10 +35,10 @@ export class RateLimiterGuard implements CanActivate {
         response.header('X-Rate-Limit-Limit', rateLimiterResponse.points)
 
         if (rateLimiterResponse.remainingPoints === 0) {
-            const date = new Date(Number(rateLimiterResponse.msBeforeNext));
+            const date = new Date(Number(rateLimiterResponse.beforeNext));
             response.header('Retry-After', date.toUTCString());
         } else {
-            const date = new Date(Number(rateLimiterResponse.msBeforeNext));
+            const date = new Date(Number(rateLimiterResponse.beforeNext));
             response.header('Retry-Reset', date.toUTCString())
         }
     }
@@ -71,7 +74,7 @@ export class RateLimiterGuard implements CanActivate {
 
         const rateLimiterResponse: IRateLimiterResponse = {
             remainingPoints: reflectedOptions.points - redisResponse,
-            msBeforeNext: lastDuration * 1000,
+            beforeNext: lastDuration * 1000,
             points: reflectedOptions.points
         }
 
@@ -87,14 +90,10 @@ export class RateLimiterGuard implements CanActivate {
             const firstOfResponse = await this.redis.zrange(key, 0, 0);
             const firstDuration = firstOfResponse[0] as unknown as number;
 
-            rateLimiterResponse.msBeforeNext = firstDuration * 1000;
+            rateLimiterResponse.beforeNext = firstDuration * 1000;
 
             this.setResponseHeaders(response, rateLimiterResponse)
         }
-    }
-
-    private requestIp(request: any) {
-        return request.ip || request.headers['x-forwarded-for'] || request.connection.remoteAddress;
     }
 
     private httpContext(context: ExecutionContext) {

@@ -16,7 +16,7 @@ interface RateLimiterOptions {
 interface IRateLimiterResponse {
     remainingPoints: number
     points: number
-    msBeforeNext: number
+    beforeNext: number
 }
 
 export { RateLimiterOptions, IRateLimiterResponse }

@@ -14,7 +14,7 @@ import { RateLimiterModule } from '@risy/nestjs-rate-limiter';
             for: 'Express',
             keyPrefix: 'global',
             points: 10, // 10 requests
-            duration: 1, // per 1 second by IP
+            duration: 60, // per 1 minute by IP
             errorMessage: 'Too many requests, please try again later.',
             logger: true,
             redis: {
@@ -63,23 +63,14 @@ export class AppController {
 }
 ```
 
-## Use Decorator
+## Use Decorator For Specific Routes
 ```typescript
 import { Controller, Get } from '@nestjs/common';
 import { RateLimiter, RateLimiterGuard } from '@risy/nestjs-rate-limiter';
 
 @Controller()
+@RateLimiter({ keyPrefix: 'my-controller', points: 5, duration: 60, errorMessage: 'Too many requests, please try again later.' })
 export class AppController {
-  @RateLimiter({
-    points: 10, // 10 requests
-    duration: 1, // per 1 second by IP
-    errorMessage: 'Too many requests, please try again later.',
-    logger: true,
-    redis: {
-        host: 'localhost',
-        port: 6379,
-    }
-  })
   @UseGuards(RateLimiterGuard)
   @Get()
   getHello() {
