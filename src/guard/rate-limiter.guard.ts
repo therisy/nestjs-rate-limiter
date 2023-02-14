@@ -1,6 +1,5 @@
 import {Reflector} from '@nestjs/core'
 import {Injectable, ExecutionContext, Inject, CanActivate, HttpException, HttpStatus, Logger} from '@nestjs/common'
-import {IRateLimiterResponse, RateLimiterOptions} from '../interface/rate-limiter.interface'
 import {RateLimiterRedisService} from "../service/rate-limiter-redis.service";
 
 @Injectable()

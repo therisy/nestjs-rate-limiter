@@ -1,6 +1,5 @@
 import {DynamicModule, Module} from '@nestjs/common';
 import {rateLimiterOptions} from "../options";
-import {RateLimiterOptions} from "../interface/rate-limiter.interface";
 import {RedisModule} from "@liaoliaots/nestjs-redis";
 import {RateLimiterRedisService} from "../service/rate-limiter-redis.service";
 
