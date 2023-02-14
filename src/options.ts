@@ -1,4 +1,4 @@
-import {RateLimiterOptions} from "./rate-limiter.interface";
+import {RateLimiterOptions} from "./interfaces/rate-limiter.interface";
 
 export const rateLimiterOptions: RateLimiterOptions = {
     for: 'Express',

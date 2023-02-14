@@ -6,7 +6,7 @@ interface RateLimiterOptions {
         host: string
         port: number
     }
-    keyPrefix?: string
+    keyPrefix: string
     points: number
     duration: number
     errorMessage?: string

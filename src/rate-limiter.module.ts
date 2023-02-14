@@ -1,6 +1,6 @@
 import {DynamicModule, Module} from '@nestjs/common';
 import {rateLimiterOptions} from "./options";
-import {RateLimiterOptions} from "./rate-limiter.interface";
+import {RateLimiterOptions} from "./interfaces/rate-limiter.interface";
 import {RedisModule} from "@liaoliaots/nestjs-redis";
 
 @Module({
@@ -16,6 +16,23 @@ export class RateLimiterModule {
                         host: options.redis.host || 'localhost',
                         port: options.redis.port || 6379,
                     },
+                }),
+            ],
+            module: RateLimiterModule,
+            providers: [{provide: 'RateLimiterOptions', useValue: options}],
+        };
+    }
+
+    static forRootAsync(options: RateLimiterOptions = rateLimiterOptions): DynamicModule {
+        return {
+            imports: [
+                RedisModule.forRootAsync({
+                    useFactory: () => ({
+                        config: {
+                            host: options.redis.host || 'localhost',
+                            port: options.redis.port || 6379,
+                        },
+                    }),
                 }),
             ],
             module: RateLimiterModule,

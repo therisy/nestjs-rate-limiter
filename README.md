@@ -2,6 +2,12 @@
 
 Nestjs Rate Limiter is a module for Nestjs that provides a rate limiter for Express, Fastify, Microservice, ExpressGraphql, and FastifyGraphql.
 
+## Installation
+
+```bash
+$ npm install --save @risy/nestjs-rate-limiter
+```
+
 ## Basic Usage
 
 > app.module.ts
@@ -29,6 +35,7 @@ export class AppModule  {}
 ```
 
 ## Use For All Routes
+> app.module.ts
 ```typescript
 import { RateLimiterModule } from '@risy/nestjs-rate-limiter';
 
@@ -48,6 +55,9 @@ import { RateLimiterModule } from '@risy/nestjs-rate-limiter';
 ```
 
 ## Use Guard
+
+> app.controller.ts
+
 ```typescript
 import { Controller, Get } from '@nestjs/common';
 import { UseGuards } from '@nestjs/common/decorators';
@@ -64,6 +74,7 @@ export class AppController {
 ```
 
 ## Use Decorator For Specific Routes
+> app.controller.ts
 ```typescript
 import { Controller, Get } from '@nestjs/common';
 import { RateLimiter, RateLimiterGuard } from '@risy/nestjs-rate-limiter';

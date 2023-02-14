@@ -1,6 +1,6 @@
 import {Reflector} from '@nestjs/core'
 import {Injectable, ExecutionContext, Inject, CanActivate, HttpException, HttpStatus, Logger} from '@nestjs/common'
-import {IRateLimiterResponse, RateLimiterOptions} from './rate-limiter.interface'
+import {IRateLimiterResponse, RateLimiterOptions} from '../interfaces/rate-limiter.interface'
 import {InjectRedis} from "@liaoliaots/nestjs-redis";
 import Redis from "ioredis";
 
