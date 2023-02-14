@@ -14,7 +14,11 @@ export class RateLimiterGuard implements CanActivate {
     }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
-        const reflectedOptions: RateLimiterOptions = this.options;
+        let reflectedOptions: RateLimiterOptions = this.reflector.get<RateLimiterOptions>('rate-limit-options', context.getHandler())
+
+        if (!reflectedOptions) {
+            reflectedOptions = this.options
+        }
 
         const {request, response} = this.httpContext(context);
         const ip = this.requestIp(request);
