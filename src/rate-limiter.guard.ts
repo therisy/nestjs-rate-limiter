@@ -17,7 +17,7 @@ export class RateLimiterGuard implements CanActivate {
         let reflectedOptions: RateLimiterOptions = this.reflector.get<RateLimiterOptions>('rate-limit-options', context.getHandler())
 
         if (!reflectedOptions) {
-            reflectedOptions = this.options
+            reflectedOptions = this.options;
         }
 
         const {request, response} = this.httpContext(context);
