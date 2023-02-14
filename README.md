@@ -17,7 +17,7 @@ import { RateLimiterModule } from '@risy/nestjs-rate-limiter';
 @Module({
     imports: [
         RateLimiterModule.forRoot({
-            for: 'Express',
+            framework: 'Express',
             keyPrefix: 'global',
             points: 10, // 10 requests
             duration: 60, // per 1 minute by IP
@@ -93,7 +93,7 @@ export class AppController {
 ## Options
 ```typescript
 export interface RateLimiterOptions {
-    for: 'Express' | 'Fastify' | 'Microservice' | 'ExpressGraphql' | 'FastifyGraphql'
+    framework: 'Express' | 'Fastify' | 'Microservice' | 'ExpressGraphql' | 'FastifyGraphql'
     redis?: {
         host: string
         port: number
