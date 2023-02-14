@@ -60,7 +60,7 @@ import { RateLimiterModule } from '@risy/nestjs-rate-limiter';
 
 ```typescript
 import { Controller, Get } from '@nestjs/common';
-import { UseGuards } from '@nestjs/common/decorators';
+import { UseGuards } from '@nestjs/common/decorator';
 import { RateLimiterGuard } from '@risy/nestjs-rate-limiter';
 
 @Controller()

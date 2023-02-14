@@ -1,7 +1,8 @@
 import {DynamicModule, Module} from '@nestjs/common';
-import {rateLimiterOptions} from "./options";
-import {RateLimiterOptions} from "./interfaces/rate-limiter.interface";
+import {rateLimiterOptions} from "../options";
+import {RateLimiterOptions} from "../interface/rate-limiter.interface";
 import {RedisModule} from "@liaoliaots/nestjs-redis";
+import {RateLimiterRedisService} from "../service/rate-limiter-redis.service";
 
 @Module({
     exports: ['RateLimiterOptions'],
@@ -20,6 +21,7 @@ export class RateLimiterModule {
             ],
             module: RateLimiterModule,
             providers: [{provide: 'RateLimiterOptions', useValue: options}],
+            exports: [RateLimiterRedisService]
         };
     }
 
@@ -37,6 +39,7 @@ export class RateLimiterModule {
             ],
             module: RateLimiterModule,
             providers: [{provide: 'RateLimiterOptions', useValue: options}],
+            exports: [RateLimiterRedisService]
         };
     }
 }

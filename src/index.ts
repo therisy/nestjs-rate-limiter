@@ -1,4 +1,3 @@
-export * from './decorators/rate-limiter.decorator'
-export * from './interfaces/rate-limiter.interface'
-export * from './rate-limiter.module'
-export * from './guards/rate-limiter.guard'
+export * from './decorator/rate-limiter.decorator'
+export * from './module/rate-limiter.module'
+export * from './guard/rate-limiter.guard'

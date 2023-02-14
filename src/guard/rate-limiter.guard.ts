@@ -1,15 +1,14 @@
 import {Reflector} from '@nestjs/core'
 import {Injectable, ExecutionContext, Inject, CanActivate, HttpException, HttpStatus, Logger} from '@nestjs/common'
-import {IRateLimiterResponse, RateLimiterOptions} from '../interfaces/rate-limiter.interface'
-import {InjectRedis} from "@liaoliaots/nestjs-redis";
-import Redis from "ioredis";
+import {IRateLimiterResponse, RateLimiterOptions} from '../interface/rate-limiter.interface'
+import {RateLimiterRedisService} from "../service/rate-limiter-redis.service";
 
 @Injectable()
 export class RateLimiterGuard implements CanActivate {
     constructor(
         @Inject('RateLimiterOptions') private options: RateLimiterOptions,
         @Inject('Reflector') private readonly reflector: Reflector,
-        @InjectRedis() private readonly redis: Redis
+        private readonly redisService: RateLimiterRedisService
     ) {
     }
 
@@ -46,39 +45,35 @@ export class RateLimiterGuard implements CanActivate {
     private async responseRateLimit(request: any, response: any, reflectedOptions: RateLimiterOptions, ip) {
         const duration = new Date().setMinutes(new Date().getMinutes() + reflectedOptions.duration)
         const key = `${reflectedOptions.keyPrefix}:${request.ip}`
-        const redisResponse = await this.redis.zcount(key, 0, duration)
+        const countLimit = await this.redisService.countLimit(key, duration);
         const unixTimestamp = Date.now() / 1000;
 
-        if (!redisResponse || redisResponse < reflectedOptions.points && (duration / 1000) > unixTimestamp) {
-            await this.redis.expire(key, 60 * reflectedOptions.duration)
+        if (!countLimit || countLimit < reflectedOptions.points && (duration / 1000) > unixTimestamp) {
+            await this.redisService.setExpire(key, reflectedOptions.duration)
 
-            const currentDate = new Date();
-            currentDate.setMinutes(currentDate.getMinutes() + reflectedOptions.duration);
-            await this.redis.zadd(key, 1, currentDate.getTime() / 1000)
+            await this.redisService.addLimit(key, reflectedOptions.duration)
         }
 
-        const firstOfResponse = await this.redis.zrange(key, 0, 0);
-        const firstDuration = firstOfResponse[0] as unknown as number;
+        const firstOfLimit = await this.redisService.getFirstOfLimit(key);
+        const firstDuration = firstOfLimit[0] as unknown as number;
 
         if (unixTimestamp > firstDuration) {
-            await this.redis.del(key)
-            await this.redis.expire(key, 60 * reflectedOptions.duration)
+            await this.redisService.deleteLimit(key);
+            await this.redisService.setExpire(key, reflectedOptions.duration)
 
-            const currentDate = new Date();
-            currentDate.setMinutes(currentDate.getMinutes() + reflectedOptions.duration);
-            await this.redis.zadd(key, 1, currentDate.getTime() / 1000)
+            await this.redisService.addLimit(key, reflectedOptions.duration)
         }
 
-        const lastOfResponse = await this.redis.zrange(key, -1, -1);
+        const lastOfResponse = await this.redisService.getLastOfLimit(key)
         const lastDuration = lastOfResponse[0] as unknown as number;
 
         const rateLimiterResponse: IRateLimiterResponse = {
-            remainingPoints: reflectedOptions.points - redisResponse,
+            remainingPoints: reflectedOptions.points - countLimit,
             beforeNext: lastDuration * 1000,
             points: reflectedOptions.points
         }
 
-        if (redisResponse >= reflectedOptions.points && unixTimestamp < lastDuration) {
+        if (countLimit >= reflectedOptions.points && unixTimestamp < lastDuration) {
             this.setResponseHeaders(response, rateLimiterResponse)
 
             if (reflectedOptions.logger) {
@@ -87,8 +82,8 @@ export class RateLimiterGuard implements CanActivate {
 
             throw new HttpException(reflectedOptions.errorMessage, HttpStatus.TOO_MANY_REQUESTS);
         } else {
-            const firstOfResponse = await this.redis.zrange(key, 0, 0);
-            const firstDuration = firstOfResponse[0] as unknown as number;
+            const firstOfLimit = await this.redisService.getFirstOfLimit(key)
+            const firstDuration = firstOfLimit[0] as unknown as number;
 
             rateLimiterResponse.beforeNext = firstDuration * 1000;
 
@@ -97,12 +92,12 @@ export class RateLimiterGuard implements CanActivate {
     }
 
     private httpContext(context: ExecutionContext) {
-        if (this.options.for === 'FastifyGraphql') {
+        if (this.options.framework === 'FastifyGraphql') {
             return {
                 request: context.getArgByIndex(2).req,
                 response: context.getArgByIndex(2).res
             }
-        } else if (this.options.for === 'ExpressGraphql') {
+        } else if (this.options.framework === 'ExpressGraphql') {
             return {
                 request: context.getArgByIndex(2).req,
                 response: context.getArgByIndex(2).req.res

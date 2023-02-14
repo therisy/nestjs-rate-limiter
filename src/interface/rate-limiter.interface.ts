@@ -1,11 +1,13 @@
 type RateLimitFramework = 'Express' | 'Fastify' | 'Microservice' | 'ExpressGraphql' | 'FastifyGraphql'
 
+interface IRedis {
+    host: string;
+    port: number;
+}
+
 interface RateLimiterOptions {
-    for: RateLimitFramework
-    redis?: {
-        host: string
-        port: number
-    }
+    framework: RateLimitFramework
+    redis?: IRedis;
     keyPrefix: string
     points: number
     duration: number
@@ -19,4 +21,4 @@ interface IRateLimiterResponse {
     beforeNext: number
 }
 
-export { RateLimiterOptions, IRateLimiterResponse }
+export { IRedis, RateLimiterOptions, IRateLimiterResponse }

@@ -1,7 +1,7 @@
-import {RateLimiterOptions} from "./interfaces/rate-limiter.interface";
+import {RateLimiterOptions} from "./interface/rate-limiter.interface";
 
 export const rateLimiterOptions: RateLimiterOptions = {
-    for: 'Express',
+    framework: 'Express',
     redis: {
         host: 'localhost',
         port: 6379,
