@@ -27,7 +27,10 @@ export class RateLimiterRedisService {
     async addLimit(key: string, duration: number) {
         const currentDate = new Date();
         currentDate.setMinutes(currentDate.getMinutes() + duration);
-        return this.redis.zadd(key, 1, currentDate.getTime() / 1000);
+        await this.redis.zadd(key, 1, currentDate.getTime() / 1000);
+        await this.setExpire(key, duration);
+
+        return true;
     }
 
     async deleteLimit(key: string) {

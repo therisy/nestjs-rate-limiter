@@ -48,7 +48,7 @@ export class RateLimiterGuard implements CanActivate {
         const unixTimestamp = Date.now() / 1000;
 
         if (!countLimit || countLimit < reflectedOptions.points && (duration / 1000) > unixTimestamp) {
-            await this.redisService.setExpire(key, reflectedOptions.duration)
+            // if the limit is not reached, the limit is added
 
             await this.redisService.addLimit(key, reflectedOptions.duration)
         }
@@ -57,9 +57,9 @@ export class RateLimiterGuard implements CanActivate {
         const firstDuration = firstOfLimit[0] as unknown as number;
 
         if (unixTimestamp > firstDuration) {
-            await this.redisService.deleteLimit(key);
-            await this.redisService.setExpire(key, reflectedOptions.duration)
+            //If the initial request has expired, all data will be deleted.
 
+            await this.redisService.deleteLimit(key);
             await this.redisService.addLimit(key, reflectedOptions.duration)
         }
 
@@ -73,6 +73,7 @@ export class RateLimiterGuard implements CanActivate {
         }
 
         if (countLimit >= reflectedOptions.points && unixTimestamp < lastDuration) {
+            // if the limit is reached, the last of the last request is received
             this.setResponseHeaders(response, rateLimiterResponse)
 
             if (reflectedOptions.logger) {
@@ -81,6 +82,8 @@ export class RateLimiterGuard implements CanActivate {
 
             throw new HttpException(reflectedOptions.errorMessage, HttpStatus.TOO_MANY_REQUESTS);
         } else {
+            // if the limit is still not reached, the second of the first request is received
+
             const firstOfLimit = await this.redisService.getFirstOfLimit(key)
             const firstDuration = firstOfLimit[0] as unknown as number;
 
